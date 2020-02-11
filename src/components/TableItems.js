@@ -9,7 +9,7 @@ const TableItems = (props) => {
 
    const [itemSelected, setItemSelected] = useState(undefined)
    const [isAllVisible, setIsAllVisible] = useState(false)
-   const [isLoading, setIsLoading] = useState(false)
+   const [isLoading, setIsLoading] = useState(undefined)
 
    const familyOptions = families.map(fam => ({
       key: fam.id,
@@ -108,8 +108,11 @@ const TableItems = (props) => {
    }
 
    const generate3DModel = async () => {
+
+      const sleep = (waitTimeInMs) => new Promise(resolve => setTimeout(resolve, waitTimeInMs));
+
       // Combine walls and families
-      setIsLoading(true);
+      setIsLoading('Usando Design Automation para generar archivo RVT..');
       props.setResultURN(undefined)
       const req = items.map(i => ({
          ...i,
@@ -120,9 +123,23 @@ const TableItems = (props) => {
          method: 'POST',
          body: JSON.stringify(req)
       });
-      setIsLoading(false);
-      console.log(response)
-      props.setResultURN(response.body.urn)
+
+      const {item_id, version_url, urn} = response.body;
+      let status;
+      do {
+         const {body} = await callApi(`/model_status`, {
+            method: 'GET',
+            params: {
+               version_url
+            }
+         });
+         status = body.status
+         setIsLoading(`Usando Model derivative para ver modelo en Viewer. Estatus: ${status}`);
+         await sleep(2000)
+      } while (status !== 'PROCESSING_COMPLETE');
+      console.log(urn)
+      setIsLoading(undefined);
+      props.setResultURN(urn)
 
    }
 
@@ -141,8 +158,8 @@ const TableItems = (props) => {
    return (
       <div className="TableItems">
          <div className="TableItemsCard">
-         <Dimmer active={isLoading}>
-            <Loader>Loading</Loader>
+         <Dimmer active={isLoading !== undefined}>
+            <Loader>{isLoading}</Loader>
          </Dimmer>
             <div style={{display: 'flex'}}>
                {/* <Button onClick={loadCalibration}>Load Calibration</Button> */}
