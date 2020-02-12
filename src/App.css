@@ -21,13 +21,14 @@ code {
   display: flex;
   flex-direction: column;
   height: 100vh;
+  background-color: #F0F8FF;
 }
 .container-view {
   position: relative;
   width: 70%;
   height: 100%;
   margin: 0;
-  background-color: #F0F8FF;
+  
 }
 
 .TableItems{
@@ -46,11 +47,26 @@ code {
   margin: 1rem;
   padding: 1rem;
   height: 95%;
+  justify-content: space-between;
+}
+
+.TableItemsFooter{
+  display: flex;
+  justify-content: space-between;
+}
+
+.TableItemsFooter div{
+  font-size: 10px;
+  font-weight: bold;
+}
+
+.TableItemsFooter section{
+  text-align: right;
 }
 
 .Body-Container{
   display: flex;
-  height: 100vh;
+  height: 90vh;
 }
 
 .Card{
@@ -86,6 +102,75 @@ code {
 
 .Header-Body{
   display: flex;
+  justify-content: space-between;
   align-items: center;
   height: 100%;
+}
+
+.Header-Title{
+  display: flex;
+  align-items: center;
+  font-size: 20px;
+  font-weight: bold;
+  margin-right: 4rem;
+  color: #1b1c1d;
+  font-family: cursive;
+}
+
+.Header-Body section {
+  display: flex;
+}
+
+.Header-Body section:last-child{
+  flex-direction: row-reverse;
+}
+
+/* ModelList */
+
+.ModelListTitle{
+  display: flex;
+  align-items: center;
+  font-size: 20px;
+  font-weight: bold;
+  margin-right: 4rem;
+  color: #1b1c1d;
+  font-family: cursive;
+  padding: 1rem;
+}
+
+.ModelListItem{
+  padding: 1rem 1rem;
+  display: flex;
+  align-items: center;
+  margin: 1rem;
+  border: 1px solid #ebebeb;
+  justify-content: space-between;
+}
+
+.ModelListItem:hover{
+  cursor: pointer;
+  background-color: #ebebeb;
+}
+
+.ModelListItemTime{
+  margin-right: 1rem;
+}
+
+.ModelListItemButton{
+  margin-right: 1rem;
+}
+
+.ModelListItemDetail{
+  display: flex;
+  flex-direction: column;
+}
+
+.ModelListItemDetail section{
+  font-weight: bold;
+}
+
+.ModelListItemDetail div{
+  /* font-weight: bold; */
+  color: #8d8d8d;
+  font-size: 12px;
 }

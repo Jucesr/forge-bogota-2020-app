@@ -5,11 +5,9 @@ import faker from 'faker'
 import { callApi } from "../utils/api";
 
 const TableItems = (props) => {
-   const { items, families, viewer } = props
+   const { items, families, viewer, calibrate } = props
 
    const [itemSelected, setItemSelected] = useState(undefined)
-   const [isAllVisible, setIsAllVisible] = useState(false)
-   const [isLoading, setIsLoading] = useState(undefined)
 
    const familyOptions = families.map(fam => ({
       key: fam.id,
@@ -17,30 +15,8 @@ const TableItems = (props) => {
       text: fam.name
    }))
 
-   const toggleAllLines = () => {
-      const measureExtension = viewer.getExtension('Autodesk.Measure');
-      measureExtension.deactivate()
-      measureExtension.activate();
-      measureExtension.deleteCurrentMeasurement();
-      if(!isAllVisible){
-         // Get all measurement from all wall types
-         const allMeasurements = items.reduce((acum, i) => {
-            return [
-               ...acum,
-               ...i.measurementList
-            ]
-         }, [])
-         measureExtension.setMeasurements(allMeasurements);
-         setIsAllVisible(true)
-      }else{
-         measureExtension.setMeasurements([]);
-         setIsAllVisible(false)
-      }
-      
-
-   }
-
    const onItemClick = (item) => {
+      calibrate();
       const measureExtension = viewer.getExtension('Autodesk.Measure');
       measureExtension.deactivate()
       measureExtension.activate();
@@ -61,6 +37,8 @@ const TableItems = (props) => {
       const measureExtension = viewer.getExtension('Autodesk.Measure');
       let data = measureExtension.getMeasurementList()
 
+      data = cleanMeasurementList(data, item);
+
       //  Add the color if any
       data = data.map((dataItem, index) => {
          return {
@@ -78,10 +56,33 @@ const TableItems = (props) => {
 
    }
 
+   const cleanMeasurementList = (measurementList, item) => {
+      // Check every measure item to see if the new measure is 10 times biger or lower. If so probably to the bug.
+      return measurementList.map((measureItem, index) => {
+         let oldMeasureItem = item.measurementList[index];
+
+         if(oldMeasureItem == undefined){
+            // There is no previous measure
+            return measureItem;
+         }
+
+         let newDistance = parseFloat(measureItem.distance.substring(0, measureItem.distance.length - 2))
+         let oldDistance = parseFloat(oldMeasureItem.distance.substring(0, oldMeasureItem.distance.length - 2))
+
+         if(newDistance >= oldDistance * 10 ){
+            // If so take the old distance
+            measureItem.distance = oldMeasureItem.distance;
+         }
+
+         return measureItem;
+      })
+
+   }
+
 
    const getDistance = (measurementList) => {
       if (measurementList.length == 0)
-         return "0 m";
+         return 0;
 
       let distanceTotal = measurementList.reduce((acum, measureItem) => {
          let parseDistance = parseFloat(measureItem.distance.substring(0, measureItem.distance.length - 2))
@@ -90,7 +91,7 @@ const TableItems = (props) => {
 
       distanceTotal = Math.round((distanceTotal + Number.EPSILON) * 100) / 100
 
-      return `${distanceTotal} m`
+      return distanceTotal;
    }
 
    const addNewMeasure = () => {
@@ -100,47 +101,6 @@ const TableItems = (props) => {
          color: faker.internet.color(),
          measurementList: []
       })
-   }
-
-   const loadCalibration = () => {
-      const measureExtension = viewer.getExtension('Autodesk.Measure');
-      measureExtension.calibrateByScale("m", 140);
-   }
-
-   const generate3DModel = async () => {
-
-      const sleep = (waitTimeInMs) => new Promise(resolve => setTimeout(resolve, waitTimeInMs));
-
-      // Combine walls and families
-      setIsLoading('Usando Design Automation para generar archivo RVT..');
-      props.setResultURN(undefined)
-      const req = items.map(i => ({
-         ...i,
-         family: families.find(f => i.familyID === f.id)
-      }))
-
-      const response = await callApi(`/generate_model`, {
-         method: 'POST',
-         body: JSON.stringify(req)
-      });
-
-      const {item_id, version_url, urn} = response.body;
-      let status;
-      do {
-         const {body} = await callApi(`/model_status`, {
-            method: 'GET',
-            params: {
-               version_url
-            }
-         });
-         status = body.status
-         setIsLoading(`Usando Model derivative para ver modelo en Viewer. Estatus: ${status}`);
-         await sleep(2000)
-      } while (status !== 'PROCESSING_COMPLETE');
-      console.log(urn)
-      setIsLoading(undefined);
-      props.setResultURN(urn)
-
    }
 
    const saveItems = async () => {
@@ -158,34 +118,6 @@ const TableItems = (props) => {
    return (
       <div className="TableItems">
          <div className="TableItemsCard">
-         <Dimmer active={isLoading !== undefined}>
-            <Loader>{isLoading}</Loader>
-         </Dimmer>
-            <div style={{display: 'flex'}}>
-               {/* <Button onClick={loadCalibration}>Load Calibration</Button> */}
-               <Button color="yellow" fluid icon labelPosition='right' onClick={loadCalibration}>
-                  Calibrate
-                  <Icon name='calculator' />
-               </Button>
-               <Button color="blue" fluid icon labelPosition='right' onClick={() => props.openSettings()}>
-                  Manage Types
-                  <Icon name='settings' />
-               </Button>
-               <Button color="teal" fluid icon labelPosition='right' onClick={generate3DModel}>
-                  Generate Model
-                  <Icon name='cube' />
-               </Button>
-               <Button color={ isAllVisible ? 'red' : 'green' }fluid icon labelPosition='right' onClick={toggleAllLines}>
-                  { isAllVisible ? 'Hide All' : 'Show All' }
-                  <Icon name='eye' />
-               </Button>
-
-               <Button color="teal" fluid icon labelPosition='right' onClick={saveItems}>
-                  Save
-                  <Icon name='save' />
-               </Button>
-            </div>
-
             <Table celled>
                <Table.Header>
                   <Table.Row>
@@ -198,11 +130,11 @@ const TableItems = (props) => {
 
                <Table.Body>
                   {items.map((item, index) => (
-                     <Table.Row key={index} >
+                     <Table.Row key={index} active={itemSelected === item.id} >
                         <Table.Cell>
                            {
                               itemSelected === item.id ? (
-                                 <Button onClick={() => onItemSave(item)} icon><Icon name='save' /></Button>
+                                 <Button color="blue" onClick={() => onItemSave(item)} icon><Icon name='save' /></Button>
                               ) : (
                                     <Button onClick={() => onItemClick(item)} icon><Icon name='edit' /></Button>
                                  )
@@ -212,7 +144,7 @@ const TableItems = (props) => {
                         <Table.Cell><Icon name="circle" style={{ color: item.color }}></Icon></Table.Cell>
                         <Table.Cell>
                            <Select 
-                              placeholder='Select your country' 
+                              placeholder='Select a wall type' 
                               options={familyOptions} 
                               value={item.familyID} 
                               onChange={(e) => {
@@ -225,7 +157,7 @@ const TableItems = (props) => {
                               }}
                            />
                         </Table.Cell>
-                        <Table.Cell>{getDistance(item.measurementList)}</Table.Cell>
+                        <Table.Cell>{`${getDistance(item.measurementList)} m`}</Table.Cell>
                      </Table.Row>
                   ))}
 
@@ -241,8 +173,15 @@ const TableItems = (props) => {
                   </Table.Row>
                </Table.Footer>
             </Table>
+            <div className="TableItemsFooter">
+               <div>
+                  V1.0.0
+               </div>
+               <section>
+                  Develop by <a href="https://www.linkedin.com/in/julio-ojeda-9640a9113/" target="_blank">Julio Ojeda</a> in <a href="http://autodeskcloudaccelerator.com/" target="_blank">Forge Accelerator Bogota 2020.</a>
+               </section>
+               </div>
          </div>
-
       </div>
    )
 }

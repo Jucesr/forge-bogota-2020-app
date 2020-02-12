@@ -69,10 +69,8 @@ class Viewer extends React.Component {
         }
 
         // Typical usage (don't forget to compare props):
-        if (this.state.projectModel !== prevState.projectModel && this.viewer) {
-            const measureExtension = this.viewer.getExtension('Autodesk.Measure');
-            if (this.state.projectModel.calibrate_unit)
-                measureExtension.calibrateByScale(this.state.projectModel.calibrate_unit, Number(this.state.projectModel.calibrate));
+        if (this.props.documentId !== prevProps.documentId && this.viewer) {
+            Autodesk.Viewing.Document.load(this.props.documentId, this.onDocumentLoadSuccess, this.onDocumentLoadFailure);
         }
         
     };
