@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Icon, Button, Select, Table, Dimmer, Loader } from 'semantic-ui-react'
+import { Icon, Button, Select, Table, Popup } from 'semantic-ui-react'
 import faker from 'faker'
 
 import { callApi } from "../utils/api";
@@ -178,7 +178,15 @@ const TableItems = (props) => {
                   V1.0.0
                </div>
                <section>
-                  Develop by <a href="https://www.linkedin.com/in/julio-ojeda-9640a9113/" target="_blank">Julio Ojeda</a> in <a href="http://autodeskcloudaccelerator.com/" target="_blank">Forge Accelerator Bogota 2020.</a>
+                  Develop by <Popup 
+                     hoverable
+                     trigger={<span style={{color: '#1e70bf'}}>Hermosillo</span>}>
+                     <ul>
+                        <li><a href="https://hermosillo.com/" target="_blank">Company Page</a></li>
+                        <li>Developer: <a href="https://www.linkedin.com/in/julio-ojeda-9640a9113/" target="_blank">Julio Ojeda</a></li>
+                     </ul>
+                     
+                  </Popup> in <a href="http://autodeskcloudaccelerator.com/" target="_blank">Forge Accelerator Bogota 2020.</a>
                </section>
                </div>
          </div>
