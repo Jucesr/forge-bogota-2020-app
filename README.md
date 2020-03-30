@@ -1,6 +1,6 @@
 # Forge Revit Wall Generator
 An app to draw 3D revit walls in the browser.
-https://jo-pokedex.herokuapp.com/
+https://forge-bogota-2020-app.herokuapp.com/
 
 ## Built With
 
