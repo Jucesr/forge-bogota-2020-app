@@ -1,5 +1,7 @@
 ## V1.0.1
   Date: Mar 30, 2020
+  * [NEW]
+    * Add readme file
   * [FIX]
     * Remove cursive from header
 
