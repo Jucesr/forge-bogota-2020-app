@@ -1,3 +1,8 @@
+## V1.0.1
+  Date: Mar 30, 2020
+  * [FIX]
+    * Remove cursive from header
+
 ## V1.0.0
   Date: Feb 11, 2020
   * [NEW]

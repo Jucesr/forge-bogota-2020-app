@@ -108,13 +108,15 @@ code {
 }
 
 .Header-Title{
+  font-family: 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
   display: flex;
   align-items: center;
   font-size: 20px;
   font-weight: bold;
   margin-right: 4rem;
   color: #1b1c1d;
-  font-family: cursive;
 }
 
 .Header-Body section {
